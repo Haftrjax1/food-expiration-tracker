@@ -114,46 +114,61 @@
     </table>
   </main>
 
-  <script>
-    const barcodeInput = document.getElementById("barcodeInput");
-    const productDetails = document.getElementById("productDetails");
-    const expirationDateInput = document.getElementById("expirationDate");
-    const notifyDaysInput = document.getElementById("notifyDays");
-    const productsTable = document.querySelector("#productsTable tbody");
+<script>
+  const barcodeInput = document.getElementById("barcodeInput");
+  const productDetails = document.getElementById("productDetails");
+  const expirationDateInput = document.getElementById("expirationDate");
+  const notifyDaysInput = document.getElementById("notifyDays");
+  const productsTable = document.querySelector("#productsTable tbody");
 
-    let currentBarcode = "";
+  let currentBarcode = "";
+  let products = JSON.parse(localStorage.getItem("products")) || [];
 
-    barcodeInput.addEventListener("input", (e) => {
-      if (e.target.value.length > 5) { // Adjust this length as needed
-        currentBarcode = e.target.value.trim();
-        barcodeInput.value = "";
-        productDetails.classList.remove("hidden");
-      }
-    });
+  // Display stored products when the page loads
+  window.onload = () => {
+    products.forEach(addProductToTable);
+  };
 
-    function addProduct() {
-      const expirationDate = expirationDateInput.value;
-      const notifyDays = notifyDaysInput.value;
-
-      if (!expirationDate || !notifyDays) {
-        alert("Please fill in all fields.");
-        return;
-      }
-
-      const row = document.createElement("tr");
-
-      row.innerHTML = `
-        <td>${currentBarcode}</td>
-        <td>${expirationDate}</td>
-        <td>${notifyDays} days before</td>
-      `;
-
-      productsTable.appendChild(row);
-
-      productDetails.classList.add("hidden");
-      expirationDateInput.value = "";
-      notifyDaysInput.value = 5;
+  barcodeInput.addEventListener("input", (e) => {
+    if (e.target.value.length > 5) {
+      currentBarcode = e.target.value.trim();
+      barcodeInput.value = "";
+      productDetails.classList.remove("hidden");
     }
-  </script>
-</body>
-</html>
+  });
+
+  function addProduct() {
+    const expirationDate = expirationDateInput.value;
+    const notifyDays = notifyDaysInput.value;
+
+    if (!expirationDate || !notifyDays) {
+      alert("Please fill in all fields.");
+      return;
+    }
+
+    const product = {
+      barcode: currentBarcode,
+      expirationDate,
+      notifyDays: parseInt(notifyDays),
+    };
+
+    products.push(product);
+    localStorage.setItem("products", JSON.stringify(products));
+    addProductToTable(product);
+
+    productDetails.classList.add("hidden");
+    expirationDateInput.value = "";
+    notifyDaysInput.value = 5;
+  }
+
+  function addProductToTable(product) {
+    const row = document.createElement("tr");
+    row.innerHTML = `
+      <td>${product.barcode}</td>
+      <td>${product.expirationDate}</td>
+      <td>${product.notifyDays} days</td>
+    `;
+    productsTable.appendChild(row);
+  }
+</script>
+
