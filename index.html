@@ -34,7 +34,7 @@
       color: #3f51b5;
     }
 
-    input, button, select {
+    input, button {
       padding: 10px;
       margin: 8px 0;
       border-radius: 6px;
@@ -49,7 +49,6 @@
       color: white;
       border: none;
       cursor: pointer;
-      transition: background 0.3s;
     }
 
     button:hover {
@@ -85,7 +84,6 @@
 
   <main>
     <h2>Scan a Barcode</h2>
-    <p>Waiting for barcode scanner input...</p>
     <input type="text" id="barcodeInput" placeholder="Scan barcode..." autofocus />
 
     <div id="productDetails" class="hidden">
@@ -95,7 +93,7 @@
         <input type="date" id="expirationDate" />
       </label>
       <label>
-        Set Notification (Days before expiration):
+        Notify me (days before):
         <input type="number" id="notifyDays" min="1" value="5" />
       </label>
       <button onclick="addProduct()">Add Product</button>
@@ -107,68 +105,76 @@
         <tr>
           <th>Barcode</th>
           <th>Expiration Date</th>
-          <th>Notification Days</th>
+          <th>Notify Before</th>
         </tr>
       </thead>
       <tbody></tbody>
     </table>
   </main>
 
-<script>
-  const barcodeInput = document.getElementById("barcodeInput");
-  const productDetails = document.getElementById("productDetails");
-  const expirationDateInput = document.getElementById("expirationDate");
-  const notifyDaysInput = document.getElementById("notifyDays");
-  const productsTable = document.querySelector("#productsTable tbody");
+  <script>
+    const barcodeInput = document.getElementById("barcodeInput");
+    const productDetails = document.getElementById("productDetails");
+    const expirationDateInput = document.getElementById("expirationDate");
+    const notifyDaysInput = document.getElementById("notifyDays");
+    const productsTable = document.querySelector("#productsTable tbody");
 
-  let currentBarcode = "";
-  let products = JSON.parse(localStorage.getItem("products")) || [];
+    let currentBarcode = "";
+    let products = [];
 
-  // Display stored products when the page loads
-  window.onload = () => {
-    products.forEach(addProductToTable);
-  };
-
-  barcodeInput.addEventListener("input", (e) => {
-    if (e.target.value.length > 5) {
-      currentBarcode = e.target.value.trim();
-      barcodeInput.value = "";
-      productDetails.classList.remove("hidden");
-    }
-  });
-
-  function addProduct() {
-    const expirationDate = expirationDateInput.value;
-    const notifyDays = notifyDaysInput.value;
-
-    if (!expirationDate || !notifyDays) {
-      alert("Please fill in all fields.");
-      return;
-    }
-
-    const product = {
-      barcode: currentBarcode,
-      expirationDate,
-      notifyDays: parseInt(notifyDays),
+    // Load saved products on page load
+    window.onload = function () {
+      const saved = localStorage.getItem("products");
+      if (saved) {
+        products = JSON.parse(saved);
+        products.forEach(displayProduct);
+      }
     };
 
-    products.push(product);
-    localStorage.setItem("products", JSON.stringify(products));
-    addProductToTable(product);
+    // Show form when barcode is entered
+    barcodeInput.addEventListener("input", (e) => {
+      if (e.target.value.length > 5) {
+        currentBarcode = e.target.value.trim();
+        barcodeInput.value = "";
+        productDetails.classList.remove("hidden");
+      }
+    });
 
-    productDetails.classList.add("hidden");
-    expirationDateInput.value = "";
-    notifyDaysInput.value = 5;
-  }
+    function addProduct() {
+      const expirationDate = expirationDateInput.value;
+      const notifyDays = notifyDaysInput.value;
 
-  function addProductToTable(product) {
-    const row = document.createElement("tr");
-    row.innerHTML = `
-      <td>${product.barcode}</td>
-      <td>${product.expirationDate}</td>
-      <td>${product.notifyDays} days</td>
-    `;
-    productsTable.appendChild(row);
-  }
-</script>
+      if (!expirationDate || !notifyDays || !currentBarcode) {
+        alert("Please complete all fields.");
+        return;
+      }
 
+      const product = {
+        barcode: currentBarcode,
+        expirationDate,
+        notifyDays: parseInt(notifyDays)
+      };
+
+      products.push(product);
+      localStorage.setItem("products", JSON.stringify(products));
+      displayProduct(product);
+
+      // Reset form
+      productDetails.classList.add("hidden");
+      expirationDateInput.value = "";
+      notifyDaysInput.value = 5;
+      currentBarcode = "";
+    }
+
+    function displayProduct(product) {
+      const row = document.createElement("tr");
+      row.innerHTML = `
+        <td>${product.barcode}</td>
+        <td>${product.expirationDate}</td>
+        <td>${product.notifyDays} days</td>
+      `;
+      productsTable.appendChild(row);
+    }
+  </script>
+</body>
+</html>
