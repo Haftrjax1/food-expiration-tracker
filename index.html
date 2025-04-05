@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Food Expiration Tracker</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: "Segoe UI", sans-serif;
+      background: #f7f9fc;
+      color: #333;
+    }
+
+    header {
+      background-color: #3f51b5;
+      color: white;
+      padding: 1rem 2rem;
+      text-align: center;
+      font-size: 1.5rem;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    main {
+      max-width: 900px;
+      margin: 2rem auto;
+      padding: 2rem;
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+
+    h2 {
+      color: #3f51b5;
+    }
+
+    input, button, select {
+      padding: 10px;
+      margin: 8px 0;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+      font-size: 1rem;
+      width: 100%;
+      box-sizing: border-box;
+    }
+
+    button {
+      background-color: #3f51b5;
+      color: white;
+      border: none;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+
+    button:hover {
+      background-color: #303f9f;
+    }
+
+    table {
+      width: 100%;
+      margin-top: 2rem;
+      border-collapse: collapse;
+    }
+
+    th, td {
+      padding: 12px;
+      text-align: left;
+      border-bottom: 1px solid #ddd;
+    }
+
+    th {
+      background-color: #f0f0f0;
+    }
+
+    .hidden {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    Food Expiration Tracker
+  </header>
+
+  <main>
+    <h2>Scan a Barcode</h2>
+    <p>Waiting for barcode scanner input...</p>
+    <input type="text" id="barcodeInput" placeholder="Scan barcode..." autofocus />
+
+    <div id="productDetails" class="hidden">
+      <h3>Product Info</h3>
+      <label>
+        Expiration Date:
+        <input type="date" id="expirationDate" />
+      </label>
+      <label>
+        Set Notification (Days before expiration):
+        <input type="number" id="notifyDays" min="1" value="5" />
+      </label>
+      <button onclick="addProduct()">Add Product</button>
+    </div>
+
+    <h2>Tracked Products</h2>
+    <table id="productsTable">
+      <thead>
+        <tr>
+          <th>Barcode</th>
+          <th>Expiration Date</th>
+          <th>Notification Days</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </main>
+
+  <script>
+    const barcodeInput = document.getElementById("barcodeInput");
+    const productDetails = document.getElementById("productDetails");
+    const expirationDateInput = document.getElementById("expirationDate");
+    const notifyDaysInput = document.getElementById("notifyDays");
+    const productsTable = document.querySelector("#productsTable tbody");
+
+    let currentBarcode = "";
+
+    barcodeInput.addEventListener("input", (e) => {
+      if (e.target.value.length > 5) { // Adjust this length as needed
+        currentBarcode = e.target.value.trim();
+        barcodeInput.value = "";
+        productDetails.classList.remove("hidden");
+      }
+    });
+
+    function addProduct() {
+      const expirationDate = expirationDateInput.value;
+      const notifyDays = notifyDaysInput.value;
+
+      if (!expirationDate || !notifyDays) {
+        alert("Please fill in all fields.");
+        return;
+      }
+
+      const row = document.createElement("tr");
+
+      row.innerHTML = `
+        <td>${currentBarcode}</td>
+        <td>${expirationDate}</td>
+        <td>${notifyDays} days before</td>
+      `;
+
+      productsTable.appendChild(row);
+
+      productDetails.classList.add("hidden");
+      expirationDateInput.value = "";
+      notifyDaysInput.value = 5;
+    }
+  </script>
+</body>
+</html>
