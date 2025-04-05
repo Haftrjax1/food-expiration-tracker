@@ -89,6 +89,11 @@
     #clearAllBtn:hover {
       background-color: #c62828;
     }
+
+    .calendar-view {
+      margin-top: 2rem;
+      font-size: 0.9rem;
+    }
   </style>
 </head>
 <body>
@@ -115,6 +120,7 @@
     </div>
 
     <h2>Tracked Products</h2>
+    <button onclick="sortByDate()">Sort by Soonest Expiration</button>
     <table id="productsTable">
       <thead>
         <tr>
@@ -127,6 +133,11 @@
       <tbody></tbody>
     </table>
     <button id="clearAllBtn" onclick="clearAll()">Clear All Products</button>
+
+    <div class="calendar-view">
+      <h3>Upcoming Expirations</h3>
+      <ul id="calendarList"></ul>
+    </div>
   </main>
 
   <script>
@@ -135,16 +146,18 @@
     const expirationDateInput = document.getElementById("expirationDate");
     const notifyDaysInput = document.getElementById("notifyDays");
     const productsTable = document.querySelector("#productsTable tbody");
+    const calendarList = document.getElementById("calendarList");
 
     let currentBarcode = "";
     let products = [];
 
-    // Load saved products on page load
-    window.onload = function () {
+    window.onload = () => {
       const saved = localStorage.getItem("products");
       if (saved) {
         products = JSON.parse(saved);
         products.forEach(displayProduct);
+        updateCalendar();
+        checkNotifications();
       }
     };
 
@@ -166,7 +179,7 @@
       }
 
       const product = {
-        id: Date.now(), // unique ID
+        id: Date.now(),
         barcode: currentBarcode,
         expirationDate,
         notifyDays: parseInt(notifyDays)
@@ -175,6 +188,7 @@
       products.push(product);
       localStorage.setItem("products", JSON.stringify(products));
       displayProduct(product);
+      updateCalendar();
 
       productDetails.classList.add("hidden");
       expirationDateInput.value = "";
@@ -202,6 +216,7 @@
 
       const row = document.querySelector(`tr[data-id='${id}']`);
       if (row) row.remove();
+      updateCalendar();
     }
 
     function clearAll() {
@@ -209,7 +224,38 @@
         products = [];
         localStorage.removeItem("products");
         productsTable.innerHTML = "";
+        calendarList.innerHTML = "";
       }
+    }
+
+    function sortByDate() {
+      products.sort((a, b) => new Date(a.expirationDate) - new Date(b.expirationDate));
+      productsTable.innerHTML = "";
+      products.forEach(displayProduct);
+    }
+
+    function updateCalendar() {
+      calendarList.innerHTML = "";
+      const upcoming = [...products].sort((a, b) => new Date(a.expirationDate) - new Date(b.expirationDate));
+      upcoming.forEach(p => {
+        const li = document.createElement("li");
+        li.textContent = `${p.barcode} expires on ${p.expirationDate}`;
+        calendarList.appendChild(li);
+      });
+    }
+
+    function checkNotifications() {
+      const today = new Date();
+      products.forEach(p => {
+        const expDate = new Date(p.expirationDate);
+        const notifyDate = new Date(expDate);
+        notifyDate.setDate(expDate.getDate() - p.notifyDays);
+        if (
+          today.toDateString() === notifyDate.toDateString()
+        ) {
+          alert(`Reminder: ${p.barcode} expires in ${p.notifyDays} day(s)!`);
+        }
+      });
     }
   </script>
 </body>
