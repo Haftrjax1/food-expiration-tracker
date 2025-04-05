@@ -74,6 +74,21 @@
     .hidden {
       display: none;
     }
+
+    .small-btn {
+      padding: 6px 10px;
+      font-size: 0.9rem;
+      width: auto;
+    }
+
+    #clearAllBtn {
+      margin-top: 1rem;
+      background-color: #e53935;
+    }
+
+    #clearAllBtn:hover {
+      background-color: #c62828;
+    }
   </style>
 </head>
 <body>
@@ -106,10 +121,12 @@
           <th>Barcode</th>
           <th>Expiration Date</th>
           <th>Notify Before</th>
+          <th>Action</th>
         </tr>
       </thead>
       <tbody></tbody>
     </table>
+    <button id="clearAllBtn" onclick="clearAll()">Clear All Products</button>
   </main>
 
   <script>
@@ -131,7 +148,6 @@
       }
     };
 
-    // Show form when barcode is entered
     barcodeInput.addEventListener("input", (e) => {
       if (e.target.value.length > 5) {
         currentBarcode = e.target.value.trim();
@@ -150,6 +166,7 @@
       }
 
       const product = {
+        id: Date.now(), // unique ID
         barcode: currentBarcode,
         expirationDate,
         notifyDays: parseInt(notifyDays)
@@ -159,7 +176,6 @@
       localStorage.setItem("products", JSON.stringify(products));
       displayProduct(product);
 
-      // Reset form
       productDetails.classList.add("hidden");
       expirationDateInput.value = "";
       notifyDaysInput.value = 5;
@@ -168,12 +184,32 @@
 
     function displayProduct(product) {
       const row = document.createElement("tr");
+      row.setAttribute("data-id", product.id);
+
       row.innerHTML = `
         <td>${product.barcode}</td>
         <td>${product.expirationDate}</td>
         <td>${product.notifyDays} days</td>
+        <td><button class="small-btn" onclick="deleteProduct(${product.id})">Delete</button></td>
       `;
+
       productsTable.appendChild(row);
+    }
+
+    function deleteProduct(id) {
+      products = products.filter(p => p.id !== id);
+      localStorage.setItem("products", JSON.stringify(products));
+
+      const row = document.querySelector(`tr[data-id='${id}']`);
+      if (row) row.remove();
+    }
+
+    function clearAll() {
+      if (confirm("Are you sure you want to clear all products?")) {
+        products = [];
+        localStorage.removeItem("products");
+        productsTable.innerHTML = "";
+      }
     }
   </script>
 </body>
